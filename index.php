@@ -1,122 +1,72 @@
+
+<!DOCTYPE HTML>  
+<html>
+<head>
+<style>
+.error {color: #FF0000;}
+</style>
+</head>
+<body>  
+
+<?php
+// define variables and set to empty values
+$start_date = $end_date = "";
+$end_dateErr = $start_dateErr = "";
+$date_parsed_start = $date_parsed_end = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  if (empty($_POST["start_date"])) {
+    $start_dateErr = "Start date is required";
+  } else {
+    $start_date = $_POST["start_date"];
+    $date_parsed_start = date_parse($start_date);
+    echo real_date($date_parsed_start);
+  }
+  if (empty($_POST["end_date"])) {
+    $end_dateErr = "End date is required";
+  } else {
+    $end_date = $_POST["end_date"];
+    $date_parsed_end = date_parse($end_date);
+    echo real_date($date_parsed_end);
+  }
+}
+
+function real_date( $date_arr )
+{
+    if ($date_arr["day"] && $date_arr["month"] && $date_arr["year"]) {
+        $date_str = $date_arr["year"] . "-" . $date_arr["month"] . "-" $date_arr["day"];
+        return $date_str;
+    } else {
+        return false;
+    }
+}
+?>
+
+<h2>PHP Form Validation Example</h2>
+<p><span class="error">* required field.</span></p>
+<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+Start Date: <input type="text" name="start_date">
+  <span class="error">* <?php echo $start_dateErr;?></span>
+  <br><br>
+End Date: <input type="text" name="end_date">
+  <span class="error">* <?php echo $end_dateErr;?></span>
+  <input type="submit" name="submit" value="Submit">  
+</form>
+
 <?php
 
-// Load the tokens file
-$str = '{"access_token":"ya29.Glv9BIFBH_vXmWojR30fztTZ7ywEGhuKn3uWGJwibWA54KGCuaSgDmkxDCxc8C8CPWgZKlQTdiqLZQd6jm1Y0pl_UwMYDFISDME-dLfU7lc2R9vsyx17yPHajC0C","token_type":"Bearer","refresh_token":"1\/GNfiNMLFUHXz9u0-cpYn1srDk3mJG1VJuzhbE4lpPc8qe7FGKOuSXo3fNx-y34LI","expires_in":3600,"created":​1510095884 }';
-// Decode the tokens file
-$json_tokens = json_decode($str);
-var_dump($json_tokens); 
-//echo '<pre>' . $json_tokens[] . '</pre>';
+// Call reports generator
+require 'reports_generator_api.php';
 
-// Load the Google API PHP Client Library.
-require_once __DIR__ . '/vendor/autoload.php';
+// Return Report
+echo "<h2>Your Input:</h2>";
+echo "<br>";
+echo $start_date . "<br>" . $date_parsed_start["month"] . "<br>";
+var_dump($date_parsed_start);
+echo "<br>";
+echo $end_date . "<br>" . $date_parsed_end["month"] . "<br>";
+var_dump($date_parsed_end);
+?>
 
-session_start();
-
-$client = new Google_Client();
-$client->setApplicationName('HalfHourMeals');
-$client->setClientId('451466387551-s2rqui0i3ui9f2cf0lj310go5s9m1sp7.apps.googleusercontent.com');
-$client->setClientSecret('_IVq4O_ZkB48xwWcCQaJvsqO');
-$client->setRedirectUri('urn:ietf:wg:oauth:2.0:oob');
-$client->setAccessType('offline');
-$client->setDeveloperKey('451466387551-s2rqui0i3ui9f2cf0lj310go5s9m1sp7.apps.googleusercontent.com');
-
-$client->addScope(Google_Service_Analytics::ANALYTICS_READONLY);
-
-$access_token_from_db = json_decode('XXXXXX');
-$refresh_token_from_db = 'XXXXX';
-$_tokenArray['access_token'] = $access_token_from_db;
-
-//must be set as json
-$client->setAccessToken( json_encode($_tokenArray) );
-
-//check if token expired:
-if ( $client->isAccessTokenExpired() ){
-    $client->refreshToken($refresh_token_from_db);
-    $new_access_token = $client->getAccessToken();
-}
-  
-$client->setAccessToken($_SESSION['access_token']);
-
-
-// if (isset($_SESSION['access_token']) && $_SESSION['access_token']) {
-//   echo("nothing to worry about here");
-//   // Set the access token on the client.
-
-//   // Create an authorized analytics service object.
-//   $analytics = new Google_Service_AnalyticsReporting($client);
-
-//   // Call the Analytics Reporting API V4.
-//   $response = getReport($analytics);
-
-//   // Print the response.
-//   printResults($response);
-
-// } else {
-//     echo("y u no work");
-// }
-
-
-// /**
-//  * Queries the Analytics Reporting API V4.
-//  *
-//  * @param service An authorized Analytics Reporting API V4 service object.
-//  * @return The Analytics Reporting API V4 response.
-//  */
-// function getReport($analytics) {
-
-//   // Replace with your view ID, for example XXXX.
-//   $VIEW_ID = "HalfHourMeals";
-
-//   // Create the DateRange object.
-//   $dateRange = new Google_Service_AnalyticsReporting_DateRange();
-//   $dateRange->setStartDate("7daysAgo");
-//   $dateRange->setEndDate("today");
-
-//   // Create the Metrics object.
-//   $sessions = new Google_Service_AnalyticsReporting_Metric();
-//   $sessions->setExpression("ga:sessions");
-//   $sessions->setAlias("sessions");
-
-//   // Create the ReportRequest object.
-//   $request = new Google_Service_AnalyticsReporting_ReportRequest();
-//   $request->setViewId($VIEW_ID);
-//   $request->setDateRanges($dateRange);
-//   $request->setMetrics(array($sessions));
-
-//   $body = new Google_Service_AnalyticsReporting_GetReportsRequest();
-//   $body->setReportRequests( array( $request) );
-//   return $analytics->reports->batchGet( $body );
-// }
-
-
-// /**
-//  * Parses and prints the Analytics Reporting API V4 response.
-//  *
-//  * @param An Analytics Reporting API V4 response.
-//  */
-// function printResults($reports) {
-//   for ( $reportIndex = 0; $reportIndex < count( $reports ); $reportIndex++ ) {
-//     $report = $reports[ $reportIndex ];
-//     $header = $report->getColumnHeader();
-//     $dimensionHeaders = $header->getDimensions();
-//     $metricHeaders = $header->getMetricHeader()->getMetricHeaderEntries();
-//     $rows = $report->getData()->getRows();
-
-//     for ( $rowIndex = 0; $rowIndex < count($rows); $rowIndex++) {
-//       $row = $rows[ $rowIndex ];
-//       $dimensions = $row->getDimensions();
-//       $metrics = $row->getMetrics();
-//       for ($i = 0; $i < count($dimensionHeaders) && $i < count($dimensions); $i++) {
-//         print($dimensionHeaders[$i] . ": " . $dimensions[$i] . "\n");
-//       }
-
-//       for ($j = 0; $j < count($metrics); $j++) {
-//         $values = $metrics[$j]->getValues();
-//         for ($k = 0; $k < count($values); $k++) {
-//           $entry = $metricHeaders[$k];
-//           print($entry->getName() . ": " . $values[$k] . "\n");
-//         }
-//       }
-//     }
-//   }
-// }
+</body>
+</html>
